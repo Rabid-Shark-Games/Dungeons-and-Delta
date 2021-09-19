@@ -3,10 +3,11 @@
 [sub_resource type="Shader" id=1]
 code = "shader_type canvas_item;
 
+uniform vec2 square_size = vec2(60, 60);
+
 void fragment(){
 	//Time is a float which is in seconds
 	
-	vec2 square_size = vec2(60, 60);
 	// Top squares
 	
 	if ((int(FRAGCOORD.x) % int(square_size.x)) - (int(TIME * 10.0) % int(square_size.x)) == 0) {
@@ -21,17 +22,18 @@ void fragment(){
 	
 	// Bottom squares
 	
-	if ((int(FRAGCOORD.x - 15.0) % int(square_size.x)) - (int(TIME * 10.0) % int(square_size.x)) == 0) {
+	if ((int(FRAGCOORD.x - 15.0) % int(square_size.x)) - (int(TIME * -10.0) % int(square_size.x)) == 0) {
 		COLOR.a += 0.5;
 	}
 	
-	if ((int(FRAGCOORD.y + 15.0) % int(square_size.y)) - (int(TIME * -10.0) % int(square_size.y)) == 0) {
+	if ((int(FRAGCOORD.y + 15.0) % int(square_size.y)) - (int(TIME * 10.0) % int(square_size.y)) == 0) {
 		COLOR.a += 0.5;
 	}
 }"
 
 [sub_resource type="ShaderMaterial" id=2]
 shader = SubResource( 1 )
+shader_param/square_size = Vector2( 60, 60 )
 
 [node name="Combat" type="ColorRect"]
 anchor_right = 1.0
