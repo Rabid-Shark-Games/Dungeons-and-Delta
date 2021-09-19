@@ -64,7 +64,8 @@ emission_shape = 2
 emission_rect_extents = Vector2( 300, 300 )
 gravity = Vector2( 400, 0 )
 initial_velocity = 427.81
-scale_amount = 49.13
+scale_amount = 88.54
+scale_amount_random = 0.73
 color_ramp = SubResource( 3 )
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
