@@ -14,6 +14,7 @@ shader_param/grid_displayed = true
 [node name="Combat" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
+script = ExtResource( 3 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -28,3 +29,27 @@ anchor_bottom = 1.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 2 )
+volume_db = -20.0
+autoplay = true
+
+[node name="LineEdit" type="LineEdit" parent="."]
+margin_left = 36.0
+margin_top = 14.0
+margin_right = 242.0
+margin_bottom = 41.0
+placeholder_text = "IP Address..."
+
+[node name="Button" type="Button" parent="."]
+margin_left = 49.7947
+margin_top = 65.6867
+margin_right = 122.795
+margin_bottom = 86.6867
+text = "CONNECT"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[connection signal="pressed" from="Button" to="." method="_on_Button_pressed"]
