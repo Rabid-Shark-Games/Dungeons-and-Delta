@@ -1,14 +1,211 @@
-[gd_scene format=2]
+[gd_scene load_steps=24 format=2]
 
-[node name="Combat" type="Node2D"]
+[sub_resource type="VisualShaderNodeScalarOp" id=1]
+operator = 1
 
-[node name="Camera2D" type="Camera2D" parent="."]
-anchor_mode = 0
+[sub_resource type="VisualShaderNodeCompare" id=2]
 
-[node name="Background" type="ColorRect" parent="."]
+[sub_resource type="VisualShaderNodeCompare" id=3]
+
+[sub_resource type="VisualShaderNodeCompare" id=4]
+
+[sub_resource type="VisualShaderNodeCompare" id=5]
+
+[sub_resource type="VisualShaderNodeVectorCompose" id=6]
+
+[sub_resource type="VisualShaderNodeVectorCompose" id=7]
+
+[sub_resource type="VisualShaderNodeCompare" id=8]
+
+[sub_resource type="VisualShaderNodeVec3Constant" id=9]
+constant = Vector3( 1, 0, 1 )
+
+[sub_resource type="VisualShaderNodeCompare" id=10]
+
+[sub_resource type="VisualShaderNodeInput" id=11]
+input_name = "time"
+
+[sub_resource type="VisualShaderNodeScalarOp" id=12]
+default_input_values = [ 0, 0.0, 1, 0.75 ]
+operator = 2
+
+[sub_resource type="VisualShaderNodeScalarOp" id=13]
+default_input_values = [ 0, 0.25, 1, 0.0 ]
+operator = 2
+
+[sub_resource type="VisualShaderNodeScalarOp" id=14]
+
+[sub_resource type="VisualShaderNodeVec3Constant" id=15]
+constant = Vector3( 30, 0, 30 )
+
+[sub_resource type="VisualShaderNodeInput" id=16]
+input_name = "fragcoord"
+
+[sub_resource type="VisualShaderNodeVectorOp" id=17]
+operator = 4
+
+[sub_resource type="VisualShaderNodeVectorDecompose" id=18]
+
+[sub_resource type="VisualShaderNodeScalarOp" id=19]
+
+[sub_resource type="VisualShaderNodeScalarOp" id=20]
+
+[sub_resource type="VisualShaderNodeScalarOp" id=21]
+operator = 1
+
+[sub_resource type="VisualShader" id=22]
+code = "shader_type spatial;
+render_mode specular_schlick_ggx;
+
+
+
+
+void vertex() {
+// Output:0
+
+}
+
+void fragment() {
+// Input:4
+	vec3 n_out4p0 = FRAGCOORD.xyz;
+
+// Vector:3
+	vec3 n_out3p0 = vec3(30.000000, 0.000000, 30.000000);
+
+// VectorOp:5
+	vec3 n_out5p0 = mod(n_out4p0, n_out3p0);
+
+// VectorDecompose:6
+	float n_out6p0 = n_out5p0.x;
+	float n_out6p1 = n_out5p0.y;
+	float n_out6p2 = n_out5p0.z;
+
+// Input:2
+	float n_out2p0 = TIME;
+
+// ScalarOp:7
+	float n_out7p0 = n_out6p0 + n_out2p0;
+
+// Compare:11
+	float n_in11p1 = 0.00000;
+	float n_in11p2 = 0.00001;
+	bool n_out11p0 = (abs(n_out7p0 - n_in11p1) < n_in11p2);
+// ScalarOp:8
+	float n_out8p0 = n_out6p2 + n_out2p0;
+
+// Compare:12
+	float n_in12p1 = 0.00000;
+	float n_in12p2 = 0.00001;
+	bool n_out12p0 = (abs(n_out8p0 - n_in12p1) < n_in12p2);
+// VectorCompose:15
+	float n_in15p1 = 0.00000;
+	vec3 n_out15p0 = vec3((n_out11p0 ? 1.0 : 0.0), n_in15p1, (n_out12p0 ? 1.0 : 0.0));
+
+// Vector:18
+	vec3 n_out18p0 = vec3(1.000000, 0.000000, 1.000000);
+
+// Compare:17
+	float n_in17p2 = 0.00001;
+	bool n_out17p0 = (abs(dot(n_out15p0, vec3(0.333333, 0.333333, 0.333333)) - dot(n_out18p0, vec3(0.333333, 0.333333, 0.333333))) < n_in17p2);
+// ScalarOp:20
+	float n_in20p1 = 0.75000;
+	float n_out20p0 = (n_out17p0 ? 1.0 : 0.0) * n_in20p1;
+
+// ScalarOp:9
+	float n_out9p0 = n_out6p0 - n_out2p0;
+
+// Compare:13
+	float n_in13p1 = 0.00000;
+	float n_in13p2 = 0.00001;
+	bool n_out13p0 = (abs(n_out9p0 - n_in13p1) < n_in13p2);
+// ScalarOp:10
+	float n_out10p0 = n_out6p2 - n_out2p0;
+
+// Compare:14
+	float n_in14p1 = 0.00000;
+	float n_in14p2 = 0.00001;
+	bool n_out14p0 = (abs(n_out10p0 - n_in14p1) < n_in14p2);
+// VectorCompose:16
+	float n_in16p1 = 0.00000;
+	vec3 n_out16p0 = vec3((n_out13p0 ? 1.0 : 0.0), n_in16p1, (n_out14p0 ? 1.0 : 0.0));
+
+// Compare:19
+	float n_in19p2 = 0.00001;
+	bool n_out19p0 = (abs(dot(n_out16p0, vec3(0.333333, 0.333333, 0.333333)) - dot(n_out18p0, vec3(0.333333, 0.333333, 0.333333))) < n_in19p2);
+// ScalarOp:21
+	float n_in21p0 = 0.25000;
+	float n_out21p0 = n_in21p0 * (n_out19p0 ? 1.0 : 0.0);
+
+// ScalarOp:22
+	float n_out22p0 = n_out20p0 + n_out21p0;
+
+// Output:0
+	ALPHA = n_out22p0;
+
+}
+
+void light() {
+// Output:0
+
+}
+"
+graph_offset = Vector2( 2314.6, -27 )
+nodes/fragment/0/position = Vector2( 5000, 160 )
+nodes/fragment/2/node = SubResource( 11 )
+nodes/fragment/2/position = Vector2( 1600, 600 )
+nodes/fragment/3/node = SubResource( 15 )
+nodes/fragment/3/position = Vector2( 600, 200 )
+nodes/fragment/4/node = SubResource( 16 )
+nodes/fragment/4/position = Vector2( 600, -200 )
+nodes/fragment/5/node = SubResource( 17 )
+nodes/fragment/5/position = Vector2( 1200, 200 )
+nodes/fragment/6/node = SubResource( 18 )
+nodes/fragment/6/position = Vector2( 1600, 200 )
+nodes/fragment/7/node = SubResource( 19 )
+nodes/fragment/7/position = Vector2( 2400, -200 )
+nodes/fragment/8/node = SubResource( 20 )
+nodes/fragment/8/position = Vector2( 2400, 200 )
+nodes/fragment/9/node = SubResource( 21 )
+nodes/fragment/9/position = Vector2( 2400, 600 )
+nodes/fragment/10/node = SubResource( 1 )
+nodes/fragment/10/position = Vector2( 2400, 1000 )
+nodes/fragment/11/node = SubResource( 2 )
+nodes/fragment/11/position = Vector2( 2800, -200 )
+nodes/fragment/12/node = SubResource( 3 )
+nodes/fragment/12/position = Vector2( 2800, 200 )
+nodes/fragment/13/node = SubResource( 4 )
+nodes/fragment/13/position = Vector2( 2800, 600 )
+nodes/fragment/14/node = SubResource( 5 )
+nodes/fragment/14/position = Vector2( 2800, 1000 )
+nodes/fragment/15/node = SubResource( 6 )
+nodes/fragment/15/position = Vector2( 3200, 0 )
+nodes/fragment/16/node = SubResource( 7 )
+nodes/fragment/16/position = Vector2( 3200, 800 )
+nodes/fragment/17/node = SubResource( 8 )
+nodes/fragment/17/position = Vector2( 3800, 0 )
+nodes/fragment/18/node = SubResource( 9 )
+nodes/fragment/18/position = Vector2( 3200, 400 )
+nodes/fragment/19/node = SubResource( 10 )
+nodes/fragment/19/position = Vector2( 3800, 800 )
+nodes/fragment/20/node = SubResource( 12 )
+nodes/fragment/20/position = Vector2( 4200, 200 )
+nodes/fragment/21/node = SubResource( 13 )
+nodes/fragment/21/position = Vector2( 4200, 600 )
+nodes/fragment/22/node = SubResource( 14 )
+nodes/fragment/22/position = Vector2( 4600, 400 )
+nodes/fragment/connections = PoolIntArray( 4, 0, 5, 0, 3, 0, 5, 1, 5, 0, 6, 0, 6, 0, 7, 0, 2, 0, 7, 1, 6, 2, 8, 0, 2, 0, 8, 1, 2, 0, 9, 1, 6, 0, 9, 0, 6, 2, 10, 0, 2, 0, 10, 1, 7, 0, 11, 0, 8, 0, 12, 0, 9, 0, 13, 0, 10, 0, 14, 0, 11, 0, 15, 0, 12, 0, 15, 2, 13, 0, 16, 0, 14, 0, 16, 2, 15, 0, 17, 0, 18, 0, 17, 1, 16, 0, 19, 0, 18, 0, 19, 1, 17, 0, 20, 0, 19, 0, 21, 1, 21, 0, 22, 1, 20, 0, 22, 0, 22, 0, 0, 1 )
+
+[sub_resource type="ShaderMaterial" id=23]
+shader = SubResource( 22 )
+
+[node name="Combat" type="ColorRect"]
+material = SubResource( 23 )
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color( 0, 0, 0, 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Camera2D" type="Camera2D" parent="."]
+anchor_mode = 0
