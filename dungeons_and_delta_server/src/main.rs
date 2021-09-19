@@ -188,7 +188,7 @@ async fn main() {
         .filter_level(LevelFilter::Info)
         .init();
 
-    let addr = "127.0.0.1:9002";
+    let addr = "0.0.0.0:8123";
     let listener = TcpListener::bind(&addr).await.expect("Can't listen");
     info!("Listening on: {}", addr);
 
