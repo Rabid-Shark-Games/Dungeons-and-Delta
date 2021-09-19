@@ -1,15 +1,23 @@
-use futures_util::{SinkExt, StreamExt, TryStreamExt};
-use json::object;
+use futures_util::{SinkExt, StreamExt};
+use json::{JsonValue, object};
 use log::*;
 use std::{collections::HashMap, net::SocketAddr, sync::Arc};
-use tokio::{net::{TcpListener, TcpStream}, sync::{Mutex, mpsc::{UnboundedReceiver, UnboundedSender, error::SendError, unbounded_channel}}};
+use tokio::{
+    net::{TcpListener, TcpStream},
+    sync::{
+        mpsc::{error::SendError, unbounded_channel, UnboundedReceiver, UnboundedSender},
+        Mutex,
+    },
+};
 use tokio_tungstenite::{accept_async, WebSocketStream};
 use tungstenite::Message;
+use uuid::Uuid;
 
 #[derive(Debug)]
 enum Error {
     Tungstenite(tungstenite::Error),
     SendError(SendError<Message>),
+    Json(json::Error),
 }
 
 impl From<tungstenite::Error> for Error {
@@ -21,6 +29,12 @@ impl From<tungstenite::Error> for Error {
 impl From<SendError<Message>> for Error {
     fn from(e: SendError<Message>) -> Self {
         Self::SendError(e)
+    }
+}
+
+impl From<json::Error> for Error {
+    fn from(e: json::Error) -> Self {
+        Self::Json(e)
     }
 }
 
@@ -48,12 +62,10 @@ impl ServerData {
     async fn send_all_but_self(
         &mut self,
         data: Message,
-        current: &mut Player,
+        uuid: Uuid,
     ) -> std::result::Result<(), SendError<Message>> {
-        current.do_not_send = true;
-
         for player in &mut self.clients {
-            if !player.do_not_send {
+            if player.uuid != uuid {
                 player.data_stream.send(data.clone())?;
             }
         }
@@ -63,6 +75,15 @@ impl ServerData {
         }
 
         Ok(())
+    }
+
+    fn get_player(&mut self, uuid: Uuid) -> Option<&mut Player> {
+        for player in &mut self.clients {
+            if player.uuid == uuid {
+                return Some(player);
+            }
+        }
+        return None;
     }
 }
 
@@ -76,7 +97,7 @@ struct Player {
     peer: SocketAddr,
     stat: Option<PlayerStat>,
     last_item: Option<Item>,
-    do_not_send: bool,
+    uuid: Uuid,
 }
 
 struct PlayerStat {
@@ -186,7 +207,7 @@ async fn handle_connection(
 
         return handle_host_wrapper(data, ws_stream, peer, rx).await;
     } else {
-        return handle_client_wrapper(data, peer, ws_stream).await;
+        return handle_client_wrapper(data, peer, ws_stream, uuid::Uuid::new_v4()).await;
     }
 }
 
@@ -194,9 +215,10 @@ async fn handle_client_wrapper(
     data: Arc<Mutex<ServerData>>,
     peer: SocketAddr,
     stream: WebSocketStream<TcpStream>,
+    uuid: Uuid
 ) -> Result<()> {
-    if let Err(e) = handle_client(data /*.clone()*/, peer, stream).await {
-        // client_cleanup(&data);
+    if let Err(e) = handle_client(data.clone(), peer, stream, uuid).await {
+        client_cleanup(&data, uuid).await;
 
         return Err(e);
     }
@@ -208,7 +230,10 @@ async fn handle_client(
     data: Arc<Mutex<ServerData>>,
     peer: SocketAddr,
     mut stream: WebSocketStream<TcpStream>,
+    uuid: Uuid
 ) -> Result<()> {
+    info!("WHAT?");
+
     stream.send(Message::Text(json::stringify(object! {
         event_type: "player_status",
         status: "client",
@@ -222,22 +247,17 @@ async fn handle_client(
         peer,
         stat: None,
         last_item: None,
-        do_not_send: false,
+        uuid: uuid.clone(),
     });
 
-    data.lock()
-        .await
-        .host
-        .as_ref()
-        .unwrap()
-        .data_stream
-        .send(Message::text("Hello, World"))?;
+    let mut state = ClientState::SelectWho;
 
     loop {
         tokio::select! {
             w = stream.next() => {
                 if let Some(Ok(message)) = w {
-                    info!("{:?}", message.to_text())
+                    info!("{:?}", message.to_text());
+                    client_on_message(message, &data, uuid, &mut stream, &mut state).await?;
                 } else {
                     println!("w");
                     break;
@@ -249,6 +269,104 @@ async fn handle_client(
         }
     }
 
+    client_cleanup(&data, uuid).await;
+
+    Ok(())
+}
+
+async fn client_cleanup(data: &Arc<Mutex<ServerData>>, uuid: Uuid) {
+    let mut lock = data.lock().await;
+
+    let x = lock.get_player(uuid).unwrap();
+
+    if x.stat.is_some() {
+        let y = x.stat.take();
+
+        lock.client_options.push(y.unwrap());
+    }
+
+    let idx = lock.clients.iter().position(|x| x.uuid == uuid).unwrap();
+    lock.clients.remove(idx);
+}
+
+enum ClientState {
+    SelectWho,
+    Idle,
+    Battle,
+    Grid,
+}
+
+async fn client_on_message(
+    message: Message,
+    data: &Arc<Mutex<ServerData>>,
+    uuid: Uuid,
+    stream: &mut WebSocketStream<TcpStream>,
+    state: &mut ClientState,
+) -> Result<()> {
+
+    if !message.is_text() && !message.is_binary() {
+        return Ok(());
+    }
+    let text = message.to_text()?;
+
+    let json = json::parse(text)?;
+
+    //warn!("{:?}", json);
+
+    match *state {
+        ClientState::SelectWho => {
+            if json.has_key("event_type") {
+                info!("{:?}", json["event_type"]);
+                match &json["event_type"] {
+                    JsonValue::Short(str) => {
+                        match str.as_str() {
+                            "select_player" => {
+                                if json.has_key("char") && json["char"].is_string() {
+                                    let mut lock = data.lock().await;
+                                    if lock.client_options.iter().any(|x| x.name == json["char"].as_str().unwrap() ) {
+                                        let idx = lock.client_options.iter().position(|x| x.name == json["char"].as_str().unwrap()).unwrap();
+                                        let x = lock.client_options.swap_remove(idx);
+                                        lock.get_player(uuid).unwrap().stat = Some(x);
+
+                                        stream.send(Message::Text(json::stringify(object! {
+                                            event_type: "player_selected",
+                                            successful: true
+                                        }))).await?;
+
+                                        let name = lock.get_player(uuid).unwrap().stat.as_ref().unwrap().name.clone();
+
+                                        lock
+                                            .send_all_but_self(
+                                                Message::Text(json::stringify(object! {
+                                                    event_type: "player_join",
+                                                    uuid: uuid.to_string(),
+                                                    stat_name: name,
+                                                })),
+                                                uuid,
+                                            )
+                                            .await?;
+                                    } else {
+                                        stream.send(Message::Text(json::stringify(object! {
+                                            event_type: "player_selected",
+                                            successful: false
+                                        }))).await?;
+                                    }
+                                } else {
+                                    stream.send(Message::text("invalid.")).await?;
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+        ClientState::Idle => {}
+        ClientState::Battle => {}
+        ClientState::Grid => {}
+    }
+
     Ok(())
 }
 
@@ -256,7 +374,7 @@ async fn handle_host_wrapper(
     data: Arc<Mutex<ServerData>>,
     stream: WebSocketStream<TcpStream>,
     peer: SocketAddr,
-    rx: UnboundedReceiver<Message>
+    rx: UnboundedReceiver<Message>,
 ) -> Result<()> {
     if let Err(e) = handle_host(data.clone(), stream, peer, rx).await {
         host_cleanup(&data).await;
@@ -271,7 +389,7 @@ async fn handle_host(
     data: Arc<Mutex<ServerData>>,
     mut stream: WebSocketStream<TcpStream>,
     peer: SocketAddr,
-    mut rx: UnboundedReceiver<Message>
+    mut rx: UnboundedReceiver<Message>,
 ) -> Result<()> {
     stream
         .send(Message::Text(json::stringify(object! {
@@ -287,11 +405,11 @@ async fn handle_host(
                     info!("{:?}", message.to_text().unwrap().trim());
 
                     if message.is_text() {
-                        let text: &str = message.to_text()?;
+                        // let text: &str = message.to_text()?;
 
-                        if text.trim() == "ping" {
-                            data.lock().await.send_all_but_host(message).await?;
-                        }
+                        // if text.trim() == "ping" {
+                        //     data.lock().await.send_all_but_host(message).await?;
+                        // }
                     }
                 } else {
                     println!("w");

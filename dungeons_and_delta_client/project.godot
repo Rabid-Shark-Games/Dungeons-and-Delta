@@ -14,9 +14,10 @@ config/name="Dungeons And Deltarune"
 run/main_scene="res://Scenes/Combat.tscn"
 config/icon="res://icon.png"
 
-[autoload]
+[display]
 
-Network="*res://Scripts/network.gd"
+window/stretch/mode="viewport"
+window/stretch/aspect="keep"
 
 [global]
 

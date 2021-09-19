@@ -13,3 +13,4 @@ tokio = {version = "*", features = ["rt", "net", "macros", "rt-multi-thread", "s
 futures-util = "*"
 env_logger = "*"
 json = "*"
+uuid = { version = "*", features = ["v4"] }

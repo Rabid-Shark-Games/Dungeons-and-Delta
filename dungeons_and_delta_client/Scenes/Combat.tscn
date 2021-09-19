@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://Resources/Shaders/grid.gdshader" type="Shader" id=1]
 [ext_resource path="res://battle.ogg" type="AudioStream" id=2]
 [ext_resource path="res://Scripts/Combat.gd" type="Script" id=3]
+[ext_resource path="res://Scripts/network.gd" type="Script" id=4]
 
 [sub_resource type="ShaderMaterial" id=1]
 shader = ExtResource( 1 )
@@ -14,6 +15,10 @@ shader_param/background = Plane( 0, 0, 0, 1 )
 shader_param/grid_displayed = true
 shader_param/square_bounds = 1.5
 shader_param/animation_progress = 0.0
+
+[sub_resource type="Gradient" id=3]
+offsets = PoolRealArray( 0, 0.5, 1 )
+colors = PoolColorArray( 0.441406, 0.441406, 0.441406, 1, 0.0898438, 0.0898438, 0.0898438, 1, 1, 1, 1, 0.380392 )
 
 [sub_resource type="Animation" id=2]
 resource_name = "fadein"
@@ -50,9 +55,37 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+position = Vector2( 200, 300 )
+emitting = false
+amount = 600
+lifetime = 1.5
+emission_shape = 2
+emission_rect_extents = Vector2( 300, 300 )
+gravity = Vector2( 400, 0 )
+initial_velocity = 427.81
+scale_amount = 49.13
+color_ramp = SubResource( 3 )
+
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource( 2 )
 volume_db = -20.0
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_constants/margin_right = 212
+custom_constants/margin_left = 212
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+margin_left = 212.0
+margin_right = 812.0
+margin_bottom = 600.0
+alignment = 1
 
 [node name="LineEdit" type="LineEdit" parent="."]
 margin_left = 36.0
@@ -60,6 +93,9 @@ margin_top = 14.0
 margin_right = 242.0
 margin_bottom = 41.0
 placeholder_text = "IP Address..."
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="Button" type="Button" parent="."]
 margin_left = 49.7947
@@ -73,5 +109,8 @@ __meta__ = {
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 anims/fadein = SubResource( 2 )
+
+[node name="Network" type="Node" parent="."]
+script = ExtResource( 4 )
 
 [connection signal="pressed" from="Button" to="." method="_on_Button_pressed"]
