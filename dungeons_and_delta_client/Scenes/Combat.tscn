@@ -4,20 +4,23 @@
 
 [sub_resource type="ShaderMaterial" id=1]
 shader = ExtResource( 1 )
-shader_param/square_size = Vector2( 100, 100 )
+shader_param/square_size = Vector2( 60, 60 )
 shader_param/color_one = Plane( 0.5, 0, 0.5, 1 )
 shader_param/color_two = Plane( 0.5, 0, 0.5, 1 )
 shader_param/background = Plane( 0, 0, 0, 1 )
 shader_param/grid_displayed = true
 
-[node name="Combat" type="ColorRect"]
-material = SubResource( 1 )
+[node name="Combat" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color( 0, 0, 0, 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Camera2D" type="Camera2D" parent="."]
 anchor_mode = 0
+
+[node name="Background" type="ColorRect" parent="."]
+material = SubResource( 1 )
+anchor_right = 1.0
+anchor_bottom = 1.0
