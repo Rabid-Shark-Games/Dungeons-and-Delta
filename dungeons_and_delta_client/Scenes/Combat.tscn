@@ -4,36 +4,41 @@
 code = "shader_type canvas_item;
 
 uniform vec2 square_size = vec2(60, 60);
+uniform vec4 color_one = vec4(0.5, 0, 0.5, 1);
+uniform vec4 color_two = vec4(0.5, 0, 0.5, 1);
+uniform vec4 background = vec4(0, 0, 0, 1);
 
 void fragment(){
-	//Time is a float which is in seconds
 	
-	// Top squares
-	
-	if ((int(FRAGCOORD.x) % int(square_size.x)) - (int(TIME * 10.0) % int(square_size.x)) == 0) {
-		COLOR.a = 1.0;
-	} else {
-		COLOR.a = 0.0;
-	}
-	
-	if ((int(FRAGCOORD.y) % int(square_size.y)) - (int(TIME * -10.0) % int(square_size.y)) == 0) {
-		COLOR.a += 1.0;
-	}
+	COLOR = background;
 	
 	// Bottom squares
 	
 	if ((int(FRAGCOORD.x - 15.0) % int(square_size.x)) - (int(TIME * -10.0) % int(square_size.x)) == 0) {
-		COLOR.a += 0.5;
+		COLOR = vec4(color_two.x, color_two.y, color_one.z, 0.25);
 	}
 	
 	if ((int(FRAGCOORD.y + 15.0) % int(square_size.y)) - (int(TIME * 10.0) % int(square_size.y)) == 0) {
-		COLOR.a += 0.5;
+		COLOR = vec4(color_two.x, color_two.y, color_one.z, 0.25);
+	}
+	
+	// Top squares
+	
+	if ((int(FRAGCOORD.x) % int(square_size.x)) - (int(TIME * 10.0) % int(square_size.x)) == 0) {
+		COLOR = vec4(color_one.x, color_one.y, color_one.z, 0.75);
+	}
+	
+	if ((int(FRAGCOORD.y) % int(square_size.y)) - (int(TIME * -10.0) % int(square_size.y)) == 0) {
+		COLOR = vec4(color_one.x, color_one.y, color_one.z, 0.75);
 	}
 }"
 
 [sub_resource type="ShaderMaterial" id=2]
 shader = SubResource( 1 )
-shader_param/square_size = Vector2( 60, 60 )
+shader_param/square_size = Vector2( 100, 100 )
+shader_param/color_one = Plane( 0.5, 0, 0.5, 1 )
+shader_param/color_two = Plane( 0.5, 0, 0.5, 1 )
+shader_param/background = Plane( 0, 0, 0, 1 )
 
 [node name="Combat" type="ColorRect"]
 anchor_right = 1.0
@@ -50,7 +55,7 @@ anchor_mode = 0
 material = SubResource( 2 )
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color( 0.54902, 0.00392157, 0.541176, 1 )
+color = Color( 0, 0, 0, 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
