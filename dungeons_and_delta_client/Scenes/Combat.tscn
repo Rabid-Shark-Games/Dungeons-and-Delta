@@ -6,6 +6,7 @@
 shader = ExtResource( 1 )
 shader_param/square_size = Vector2( 60, 60 )
 shader_param/color_one = Plane( 0.5, 0, 0.5, 1 )
+shader_param/box_scale_multiplier = 1.5
 shader_param/color_two = Plane( 0.5, 0, 0.5, 1 )
 shader_param/background = Plane( 0, 0, 0, 1 )
 shader_param/grid_displayed = true
@@ -24,3 +25,6 @@ anchor_mode = 0
 material = SubResource( 1 )
 anchor_right = 1.0
 anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
