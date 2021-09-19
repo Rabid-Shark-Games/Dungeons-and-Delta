@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://Resources/Shaders/grid.gdshader" type="Shader" id=1]
 [ext_resource path="res://battle.ogg" type="AudioStream" id=2]
@@ -13,6 +13,23 @@ shader_param/color_two = Plane( 0.5, 0, 0.5, 1 )
 shader_param/background = Plane( 0, 0, 0, 1 )
 shader_param/grid_displayed = true
 shader_param/square_bounds = 1.5
+shader_param/animation_progress = 0.0
+
+[sub_resource type="Animation" id=2]
+resource_name = "fadein"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/path = NodePath("Background:material:shader_param/animation_progress")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.5 ),
+"transitions": PoolRealArray( 1, 2.28209 ),
+"update": 0,
+"values": [ 0.0, 1.0 ]
+}
 
 [node name="Combat" type="Control"]
 anchor_right = 1.0
@@ -54,5 +71,9 @@ text = "CONNECT"
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+autoplay = "fadein"
+anims/fadein = SubResource( 2 )
 
 [connection signal="pressed" from="Button" to="." method="_on_Button_pressed"]
